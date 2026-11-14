@@ -715,8 +715,8 @@ let installEvent = null;
 function showInstallTip() {
   if (standalone || load(KEY_TIP, false) || !(isIOS || isAndroid)) return;
   $('#installText').textContent = isIOS
-    ? 'ホーム画面に追加して使う：Safari の共有ボタン（四角に上向きの矢印）→「ホーム画面に追加」。メニューは追加したアイコンから開いて入れる（Safariのまま入れた分は引き継がれないことがある）。'
-    : 'ホーム画面に追加して使う：Chrome の右上の「︙」→「ホーム画面に追加」または「アプリをインストール」。';
+    ? 'ホーム画面に追加して使う：Safari の共有ボタン（四角から上向きの矢印）→「ホーム画面に追加」（見当たらない時は「その他」の中）→「追加」。メニューは追加したアイコンから開いて入れる（Safariのまま入れた分は引き継がれないことがある）。'
+    : 'ホーム画面に追加して使う：Chrome の右上の「︙」→「アプリをインストール」または「ホーム画面に追加」→「インストール」。';
   $('#installTip').hidden = false;
 }
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; $('#installBtn').hidden = false; });
