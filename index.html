@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="ja" data-theme="outdoor">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>マルシェレジ</title>
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="マルシェレジ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+/* 見た目は3案。html の data-theme で切り替える */
+:root, [data-theme="natural"] {
+  --bg: #f3efe6; --pane: #fffdf8; --pane-line: #e3dccd; --ink: #2b2925; --sub: #7a7368;
+  --head: #2f6b4f; --head-ink: #fff;
+  --btn-ink: #2b2925; --btn-line: rgba(0,0,0,.08); --btn-shadow: rgba(0,0,0,.12);
+  --key: #fff; --key-ink: #2b2925; --key-line: #ddd5c4; --op: #e4efe6; --op-ink: #2f6b4f; --fn: #ece7dc;
+  --eq: #2f6b4f; --eq-ink: #fff;
+  --add: #3c6e9e; --pay: #c06a22; --next: #2f6b4f; --danger: #c0392b; --ok: #2f7a3e;
+  --badge: #2f6b4f; --badge-ink: #fff; --quick: #fbeee0; --quick-ink: #8a4a12;
+  --c0: #ffe8a8; --c1: #ffd4ab; --c2: #ffcac4; --c3: #f8d0e6; --c4: #ddd2fb; --c5: #cadfff; --c6: #c2ece8; --c7: #d2edc6; --c8: #e8e3d8;
+  --radius: 14px;
+}
+/* 屋外向け：日が当たると画面の暗い所が白っぽく浮くので、文字は全部「白い地に黒」。色はボタンの枠だけで分ける */
+[data-theme="outdoor"] {
+  --bg: #e6e9ed; --pane: #fff; --pane-line: #8d96a0; --ink: #000; --sub: #2d2d2d;
+  --head: #000; --head-ink: #fff;
+  --btn-ink: #000; --btn-line: #000; --btn-shadow: rgba(0,0,0,.45);
+  --key: #fff; --key-ink: #000; --key-line: #6b737c; --op: #dde3ea; --op-ink: #000; --fn: #cfd5dc;
+  --eq: #000; --eq-ink: #fff;
+  --add: #8fc8ff; --pay: #ffd400; --next: #000; --danger: #d0021b; --ok: #000;
+  --badge: #000; --badge-ink: #ffd400; --quick: #fff; --quick-ink: #000;
+  --c0: #e0a800; --c1: #ef6c00; --c2: #d32f2f; --c3: #c2185b; --c4: #6a1b9a; --c5: #1565c0; --c6: #00838f; --c7: #2e7d32; --c8: #6b7780;
+  --radius: 10px;
+}
+[data-theme="board"] {
+  --bg: #1f3a2e; --pane: #26473a; --pane-line: #3b6252; --ink: #f6f1e3; --sub: #b9c9bf;
+  --head: #15291f; --head-ink: #f6f1e3;
+  --btn-ink: #f6f1e3; --btn-line: rgba(255,255,255,.55); --btn-shadow: rgba(0,0,0,.35);
+  --key: #2d5444; --key-ink: #f6f1e3; --key-line: #4d7766; --op: #3a6653; --op-ink: #ffe7a0; --fn: #234537;
+  --eq: #f2c14e; --eq-ink: #1f3a2e;
+  --add: #6aa5d8; --pay: #f2994a; --next: #f6f1e3; --danger: #ff7b6b; --ok: #9be29b;
+  --badge: #f2c14e; --badge-ink: #1f3a2e; --quick: #2d5444; --quick-ink: #ffe7a0;
+  --c0: #f2c14e; --c1: #f2994a; --c2: #ff8a80; --c3: #f48fb1; --c4: #b39ddb; --c5: #81b9e8; --c6: #7fd8cf; --c7: #a5d6a7; --c8: #d7d0c0;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  -webkit-text-size-adjust: 100%; overscroll-behavior: none; touch-action: manipulation;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+}
+input { -webkit-user-select: text; user-select: text; font: inherit; }
+button { font: inherit; color: inherit; touch-action: manipulation; cursor: pointer; }
+button:disabled { opacity: .45; cursor: default; }
+[hidden] { display: none !important; }
+
+#app {
+  display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+header {
+  display: flex; align-items: center; gap: 12px; padding: 8px 12px; min-height: 52px;
+  background: var(--head); color: var(--head-ink);
+}
+.brand { font-weight: 800; font-size: 20px; letter-spacing: .05em; }
+#storeWarn { font-size: 14px; background: #fff3cd; color: #7a5300; padding: 4px 8px; border-radius: 6px; }
+.spacer { flex: 1; }
+/* 見た目の切り替え（1回押すだけ。データは変わらないので長押しにしない） */
+#themeSwitch { display: flex; border: 1px solid var(--head-ink); border-radius: 10px; overflow: hidden; }
+#themeSwitch button { border: 0; background: transparent; color: var(--head-ink); padding: 0 14px; min-height: 42px; font-size: 16px; font-weight: 700; }
+#themeSwitch button + button { border-left: 1px solid var(--head-ink); }
+#themeSwitch button.on { background: var(--head-ink); color: var(--head); }
+@media (max-width: 560px) {
+  .brand { display: none; }
+  #themeSwitch button { padding: 0 9px; font-size: 14px; }
+}
+#editBtn {
+  position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,.5); background: transparent; color: var(--head-ink);
+  border-radius: 10px; padding: 6px 14px; font-size: 15px; line-height: 1.2; text-align: center;
+}
+#editBtn small { display: block; font-size: 11px; opacity: .8; }
+#editBtn::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: var(--head-ink); opacity: .8;
+}
+#editBtn.holding::after { width: 100%; transition: width .8s linear; }
+
+#installTip {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; font-size: 15px; line-height: 1.5;
+  background: #fff7d6; color: #4a3b00; border-bottom: 1px solid #e8d78a;
+}
+#installTip p { margin: 0; flex: 1; }
+#installTip button { border: 1px solid #b59a2a; background: #fff; border-radius: 8px; padding: 6px 12px; }
+
+main {
+  flex: 1; min-height: 0; display: grid; gap: 10px; padding: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 28%) minmax(250px, 25%);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "menu sale calc";
+}
+.pane { background: var(--pane); border: 1px solid var(--pane-line); border-radius: var(--radius); min-height: 0; }
+#menuPane { grid-area: menu; overflow-y: auto; padding: 18px 14px 12px; -webkit-overflow-scrolling: touch; }
+#salePane { grid-area: sale; display: flex; flex-direction: column; padding: 12px; gap: 8px; }
+#calcPane { grid-area: calc; display: flex; flex-direction: column; padding: 10px; gap: 8px; }
+
+/* メニューのボタン */
+#menuGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); grid-auto-rows: minmax(118px, auto); gap: 10px; }
+.mbtn {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 8px; border-radius: var(--radius); border: 2px solid var(--btn-line);
+  background: var(--c); color: var(--btn-ink); box-shadow: 0 3px 0 var(--btn-shadow);
+}
+.mbtn:active { transform: translateY(3px); box-shadow: none; filter: brightness(.94); }
+.mbtn .name {
+  font-size: 25px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.mbtn .price { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.mbtn .badge {
+  position: absolute; top: -14px; right: -10px; min-width: 34px; height: 34px; padding: 0 7px; border-radius: 17px;
+  display: grid; place-items: center; background: var(--badge); color: var(--badge-ink); font-weight: 800; font-size: 17px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+[data-theme="board"] .mbtn { background: transparent; border-color: var(--c); border-style: dashed; color: var(--c); box-shadow: none; }
+[data-theme="board"] .mbtn:active { background: rgba(255,255,255,.08); }
+[data-theme="outdoor"] .mbtn { background: #fff; border: 4px solid var(--c); border-top-width: 16px; }
+.empty { color: var(--sub); font-size: 17px; line-height: 1.7; margin: 8px 4px; }
+
+/* 合計と明細 */
+.totalBox { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border-bottom: 2px solid var(--pane-line); padding-bottom: 6px; }
+.totalLabel { font-size: 19px; font-weight: 800; color: var(--sub); white-space: nowrap; }
+#count { margin-left: 6px; }
+#total { font-size: 56px; font-weight: 800; line-height: 1.1; letter-spacing: .01em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#total small, .money small { font-size: .42em; margin-left: 2px; }
+#lines { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 60px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* 明細は2段：上に品名と小計、下に単価×個数と −＋ */
+.line { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name sum" "unit qty";
+  align-items: center; gap: 2px 8px; padding: 8px 0; border-bottom: 1px dashed var(--pane-line); }
+.lname { grid-area: name; font-size: 21px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.line.manual .lname { color: var(--sub); }
+.lsum { grid-area: sum; font-size: 22px; font-weight: 800; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lunit { grid-area: unit; font-size: 17px; font-weight: 600; color: var(--sub); font-variant-numeric: tabular-nums; }
+.lqty { grid-area: qty; display: flex; gap: 8px; justify-content: flex-end; }
+.qbtn { width: 50px; height: 40px; border-radius: 10px; border: 1px solid var(--key-line); background: var(--key); color: var(--key-ink); font-size: 24px; font-weight: 700; line-height: 1; padding: 0; }
+.listEmpty { color: var(--sub); font-size: 17px; padding: 10px 2px; line-height: 1.6; }
+#undoBtn { margin-top: 8px; border: 1px solid var(--pane-line); background: var(--key); color: var(--key-ink); border-radius: 10px; padding: 10px 14px; font-size: 17px; font-weight: 700; }
+#payBox { border-top: 2px solid var(--pane-line); padding-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.payRow { display: flex; justify-content: space-between; align-items: baseline; font-size: 19px; font-weight: 700; }
+.payRow b { font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.payRow.change b { font-size: 46px; line-height: 1.1; color: var(--ok); }
+.payRow.change.short b, .payRow.change.short span { color: var(--danger); }
+.quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.quick button { border: 1px solid var(--quick-ink); background: var(--quick); color: var(--quick-ink); border-radius: 10px; padding: 10px 2px; font-size: 17px; font-weight: 800; }
+#nextBtn { border: 0; border-radius: var(--radius); background: var(--next); color: var(--pane); font-size: 23px; font-weight: 800; padding: 16px 8px; }
+#nextBtn.armed { background: var(--danger); color: #fff; }
+
+/* 電卓 */
+#calcDisp { background: var(--key); border: 1px solid var(--key-line); border-radius: 10px; padding: 4px 12px; text-align: right; min-height: 84px; }
+#expr { font-size: 18px; font-weight: 600; color: var(--sub); min-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; unicode-bidi: plaintext; }
+#cval { font-size: 44px; line-height: 1.2; font-weight: 800; color: var(--key-ink); white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
+#cval.err { color: var(--danger); font-size: 28px; }
+#keys { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, minmax(44px, 1fr)); gap: 6px; }
+#keys button { border: 1px solid var(--key-line); border-radius: 10px; background: var(--key); color: var(--key-ink); font-size: 32px; font-weight: 700; padding: 0; }
+#keys button:active, .quick button:active, .calcActions button:active, #nextBtn:active { filter: brightness(.9); }
+#keys .op { background: var(--op); color: var(--op-ink); font-size: 34px; }
+#keys .fn { background: var(--fn); font-size: 27px; }
+#keys .eq { grid-row: span 2; background: var(--eq); color: var(--eq-ink); border: 0; font-size: 36px; }
+#keys .zero { grid-column: span 2; }
+.calcActions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.calcActions button { border: 0; border-radius: 10px; color: #fff; font-size: 19px; font-weight: 800; padding: 14px 4px; }
+#addManual { background: var(--add); }
+#setPaid { background: var(--pay); }
+[data-theme="board"] .calcActions button { color: #15291f; }
+[data-theme="outdoor"] .calcActions button { color: #000; border: 2px solid #000; }
+[data-theme="outdoor"] .pane, [data-theme="outdoor"] #keys button, [data-theme="outdoor"] .quick button, [data-theme="outdoor"] .qbtn { border-width: 2px; }
+[data-theme="outdoor"] .line { border-bottom: 1px solid #b3bac2; }
+[data-theme="outdoor"] #changeRow { background: #ffd400; border-radius: 8px; padding: 0 8px; }
+[data-theme="outdoor"] #changeRow.short { background: var(--danger); }
+[data-theme="outdoor"] #changeRow.short b, [data-theme="outdoor"] #changeRow.short span { color: #fff; }
+
+/* 縦向き：上にメニュー、下に明細と電卓 */
+@media (orientation: portrait) {
+  main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) clamp(400px, 46vh, 540px);
+    grid-template-areas: "menu menu" "sale calc";
+  }
+}
+/* スマホの幅：全部を縦に並べてスクロール（小さいタブレットの縦向き 600px はタブレットの並びのまま） */
+@media (max-width: 560px) {
+  #app { height: auto; min-height: 100vh; }
+  main { display: flex; flex-direction: column; }
+  #menuPane { overflow: visible; }
+  #salePane { min-height: 380px; }
+  #calcPane { height: 470px; }
+  #lines { max-height: 260px; }
+}
+
+/* 編集画面 */
+#editor { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: flex; flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.edHead { display: flex; align-items: center; gap: 12px; padding: 8px 12px; min-height: 52px; background: var(--head); color: var(--head-ink); }
+.edHead h2 { margin: 0; font-size: 20px; flex: 1; }
+#edDone { border: 0; border-radius: 10px; background: var(--head-ink); color: var(--head); font-weight: 800; font-size: 17px; padding: 8px 20px; }
+.edBody { flex: 1; overflow-y: auto; padding: 14px; -webkit-overflow-scrolling: touch; }
+.edBody .hint { margin: 0 0 10px; color: var(--sub); font-size: 15px; line-height: 1.6; }
+#edList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 860px; }
+.edRow { display: grid; grid-template-columns: 48px minmax(0, 1fr) 132px 46px 46px 72px; gap: 8px; align-items: center;
+  background: var(--pane); border: 1px solid var(--pane-line); border-radius: 12px; padding: 8px; }
+.edRow input { width: 100%; height: 46px; border: 1px solid var(--key-line); border-radius: 8px; padding: 0 10px; font-size: 18px; background: #fff; color: #222; }
+.priceWrap { display: flex; align-items: center; gap: 4px; }
+.priceWrap input { text-align: right; }
+.swatch { width: 46px; height: 46px; border-radius: 10px; border: 2px solid var(--btn-line); background: var(--c); }
+.edRow .mv, .edRow .del { height: 46px; border-radius: 8px; border: 1px solid var(--key-line); background: var(--key); color: var(--key-ink); font-size: 18px; padding: 0; }
+.edRow .del { font-size: 15px; color: var(--danger); }
+.edRow .del.armed { background: var(--danger); color: #fff; border-color: var(--danger); }
+.palette { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+.palette button { width: 44px; height: 44px; border-radius: 10px; border: 2px solid var(--btn-line); background: var(--c); }
+.palette button.on { outline: 3px solid var(--ink); outline-offset: 2px; }
+#edAdd { margin-top: 12px; width: 100%; max-width: 860px; border: 2px dashed var(--pane-line); background: var(--pane); color: var(--ink); border-radius: 12px; padding: 14px; font-size: 18px; font-weight: 700; }
+.edSection { margin-top: 24px; max-width: 860px; background: var(--pane); border: 1px solid var(--pane-line); border-radius: 12px; padding: 14px; }
+.edSection h3 { margin: 0 0 6px; font-size: 18px; }
+.edSection p { margin: 0 0 10px; color: var(--sub); font-size: 15px; line-height: 1.6; }
+.edSection .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.edSection button, .fileBtn { border: 1px solid var(--key-line); background: var(--key); color: var(--key-ink); border-radius: 10px; padding: 10px 16px; font-size: 16px; }
+.edSection button.on { background: var(--head); color: var(--head-ink); border-color: var(--head); }
+.fileBtn { position: relative; overflow: hidden; display: inline-block; }
+.fileBtn input { position: absolute; inset: 0; opacity: 0; font-size: 0; }
+#backupMsg { margin-top: 10px; font-size: 15px; line-height: 1.6; }
+#backupMsg button { margin: 6px 6px 0 0; }
+.ver { margin-top: 18px; color: var(--sub); font-size: 13px; }
+@media (max-width: 560px) {
+  .edRow { grid-template-columns: 48px minmax(0, 1fr) 110px; }
+  .edRow .mv, .edRow .del { grid-row: 2; }
+}
+
+#toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); z-index: 30;
+  background: rgba(20,20,20,.88); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 17px;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: 90vw; text-align: center;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">マルシェレジ</div>
+    <div id="storeWarn" hidden>この画面ではメニューを保存できない（プライベートブラウズを切る）</div>
+    <div class="spacer"></div>
+    <div id="themeSwitch" role="group" aria-label="見た目">
+      <button type="button" data-theme-pick="outdoor">屋外</button><button type="button" data-theme-pick="natural">ナチュラル</button><button type="button" data-theme-pick="board">黒板</button>
+    </div>
+    <button id="editBtn" type="button">メニュー編集<small>長押し</small></button>
+  </header>
+  <div id="installTip" hidden><p id="installText"></p><button id="installBtn" type="button" hidden>追加する</button><button id="tipClose" type="button">閉じる</button></div>
+  <main>
+    <section id="menuPane" class="pane"><div id="menuGrid"></div></section>
+    <section id="salePane" class="pane">
+      <div class="totalBox"><div class="totalLabel">合計<span id="count"></span></div><div id="total">0<small>円</small></div></div>
+      <ul id="lines"></ul>
+      <div id="payBox" hidden>
+        <div class="payRow"><span>お預かり</span><b id="paid"></b></div>
+        <div class="payRow change" id="changeRow"><span id="changeLabel">お釣り</span><b id="change"></b></div>
+      </div>
+      <div class="quick">
+        <button type="button" data-pay="exact">ちょうど</button>
+        <button type="button" data-pay="1000">千円</button>
+        <button type="button" data-pay="5000">五千円</button>
+        <button type="button" data-pay="10000">一万円</button>
+      </div>
+      <button id="nextBtn" type="button">次のお客さん</button>
+    </section>
+    <section id="calcPane" class="pane">
+      <div id="calcDisp"><div id="expr">&nbsp;</div><div id="cval">0</div></div>
+      <div id="keys">
+        <button type="button" data-k="C" class="fn">C</button><button type="button" data-k="BS" class="fn" aria-label="1文字消す">←</button><button type="button" data-k="/" class="op">÷</button><button type="button" data-k="*" class="op">×</button>
+        <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" data-k="-" class="op">−</button>
+        <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button><button type="button" data-k="+" class="op">＋</button>
+        <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" data-k="=" class="eq">＝</button>
+        <button type="button" data-k="0" class="zero">0</button><button type="button" data-k="00">00</button>
+      </div>
+      <div class="calcActions"><button id="addManual" type="button">合計に入れる</button><button id="setPaid" type="button">お預かり</button></div>
+    </section>
+  </main>
+</div>
+
+<div id="editor" hidden>
+  <div class="edHead"><h2>メニューの編集</h2><button id="edDone" type="button">完了</button></div>
+  <div class="edBody">
+    <p class="hint">品名と値段は書き換えるとすぐに保存される。左の色の四角でボタンの色、↑↓で並び順を変える。見た目（屋外・ナチュラル・黒板）は、元の画面の上のボタンで切り替える。</p>
+    <ol id="edList"></ol>
+    <button id="edAdd" type="button">＋ 品を追加</button>
+    <section class="edSection">
+      <h3>控え（バックアップ）</h3>
+      <p>メニューを変えたら控えを保存しておく。タブレットを替えた時や、データが消えた時に、控えから戻せる。</p>
+      <div class="row">
+        <button id="exportBtn" type="button">控えを保存</button>
+        <label class="fileBtn">控えから戻す<input id="importInput" type="file" accept="application/json,.json"></label>
+      </div>
+      <div id="backupMsg"></div>
+    </section>
+    <div class="ver" id="ver"></div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+const APP_VERSION = '2026-11-14';
+const KEY_MENU = 'marcheRegi.menu', KEY_SALE = 'marcheRegi.sale', KEY_TIP = 'marcheRegi.tipClosed', KEY_THEME = 'marcheRegi.theme';
+const THEMES = ['outdoor', 'natural', 'board'];          // 先頭が最初の見た目
+const COLOR_COUNT = 9;                       // ボタンの色の数（CSS の --c0〜--c8）
+const DEFAULT_MENU = [                       // 最初に入っている仮のメニュー
+  { name: '唐揚げ', price: 700, color: 1 },
+  { name: 'コロッケ', price: 700, color: 0 },
+  { name: 'ポテトフライ', price: 500, color: 0 },
+  { name: 'おにぎり', price: 150, color: 8 },
+  { name: '焼き菓子', price: 300, color: 3 },
+  { name: 'ドリンク', price: 200, color: 5 },
+];
+
+const $ = s => document.querySelector(s);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const fmt = n => (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('ja-JP', { maximumFractionDigits: 2 });
+const yen = n => fmt(n) + '円';
+const toHalf = s => String(s).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+
+// ---- 保存（タブレットの中の localStorage） ----
+let canStore = true;
+try { localStorage.setItem('marcheRegi.test', '1'); localStorage.removeItem('marcheRegi.test'); } catch (e) { canStore = false; }
+function load(key, fallback) {
+  try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; } catch (e) { return fallback; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { canStore = false; $('#storeWarn').hidden = false; }
+}
+function cleanMenu(list) {
+  if (!Array.isArray(list)) return null;
+  return list.filter(m => m && typeof m === 'object').map(m => ({
+    id: typeof m.id === 'string' && m.id ? m.id : uid(),
+    name: String(m.name ?? '').slice(0, 30),
+    price: Math.max(0, Math.min(9999999, Math.round(Number(m.price) || 0))),
+    color: Number.isInteger(m.color) && m.color >= 0 && m.color < COLOR_COUNT ? m.color : 0,
+  }));
+}
+function cleanSale(s) {
+  if (!s || !Array.isArray(s.lines)) return { lines: [], paid: null };
+  const lines = s.lines.filter(l => l && (l.kind === 'item' || l.kind === 'manual') && Number.isFinite(l.price) && l.qty > 0)
+    .map(l => ({ kind: l.kind, key: String(l.key || uid()), id: l.id ? String(l.id) : null, name: String(l.name ?? ''), price: l.price, qty: Math.round(l.qty) }));
+  return { lines, paid: Number.isFinite(s.paid) ? s.paid : null };
+}
+
+let menu = cleanMenu(load(KEY_MENU, null)) || cleanMenu(DEFAULT_MENU);
+let sale = cleanSale(load(KEY_SALE, null));
+let lastSale = null, undoTimer = null;
+const saveMenu = () => save(KEY_MENU, menu);
+const saveSale = () => save(KEY_SALE, sale);
+if (!load(KEY_MENU, null)) saveMenu();
+
+// ---- 見た目 ----
+function applyTheme(t) {
+  if (!THEMES.includes(t)) t = THEMES[0];
+  document.documentElement.dataset.theme = t;
+  const head = getComputedStyle(document.documentElement).getPropertyValue('--head').trim();
+  document.querySelector('meta[name="theme-color"]').content = head || '#000000';
+  document.querySelectorAll('[data-theme-pick]').forEach(b => b.classList.toggle('on', b.dataset.themePick === t));
+}
+applyTheme(new URLSearchParams(location.search).get('theme') || load(KEY_THEME, THEMES[0]));
+
+// ---- メニューのボタン ----
+function renderMenu() {
+  const grid = $('#menuGrid');
+  grid.textContent = '';
+  const items = menu.filter(m => m.name.trim());
+  if (!items.length) {
+    grid.innerHTML = '<p class="empty">メニューがまだない。右上の「メニュー編集」を長押しして、品を足す。</p>';
+    return;
+  }
+  for (const m of items) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'mbtn'; b.dataset.id = m.id;
+    b.style.setProperty('--c', `var(--c${m.color})`);
+    b.innerHTML = '<span class="name"></span><span class="price"></span><span class="badge" hidden></span>';
+    b.querySelector('.name').textContent = m.name;
+    b.querySelector('.price').textContent = yen(m.price);
+    b.addEventListener('click', () => addItem(m));
+    grid.appendChild(b);
+  }
+  updateBadges();
+}
+function updateBadges() {
+  document.querySelectorAll('.mbtn').forEach(b => {
+    const q = sale.lines.filter(l => l.kind === 'item' && l.id === b.dataset.id).reduce((s, l) => s + l.qty, 0);
+    const badge = b.querySelector('.badge');
+    badge.hidden = !q; badge.textContent = q;
+  });
+}
+
+// ---- 会計 ----
+function saleChanged(focusKey) {
+  lastSale = null; clearTimeout(undoTimer);
+  saveSale(); renderSale(focusKey);
+}
+function addItem(m) {
+  let line = sale.lines.find(l => l.kind === 'item' && l.id === m.id && l.price === m.price);
+  if (line) line.qty += 1;
+  else { line = { kind: 'item', key: uid(), id: m.id, name: m.name, price: m.price, qty: 1 }; sale.lines.push(line); }
+  saleChanged(line.key);
+}
+const totalOf = s => s.lines.reduce((sum, l) => sum + l.price * l.qty, 0);
+function renderSale(focusKey) {
+  const total = totalOf(sale);
+  const count = sale.lines.filter(l => l.kind === 'item').reduce((s, l) => s + l.qty, 0);
+  $('#total').innerHTML = `${fmt(total)}<small>円</small>`;
+  $('#count').textContent = count ? `${count}点` : '';
+  const ul = $('#lines');
+  ul.textContent = '';
+  if (!sale.lines.length) {
+    const li = document.createElement('li');
+    li.className = 'listEmpty';
+    li.textContent = 'メニューを押すと、ここに並ぶ。';
+    if (lastSale) {
+      const u = document.createElement('button');
+      u.type = 'button'; u.id = 'undoBtn'; u.textContent = '↩ 消した会計を戻す';
+      u.addEventListener('click', undoClear);
+      li.appendChild(document.createElement('br')); li.appendChild(u);
+    }
+    ul.appendChild(li);
+  }
+  for (const l of sale.lines) {
+    const li = document.createElement('li');
+    li.className = 'line' + (l.kind === 'manual' ? ' manual' : '');
+    li.dataset.key = l.key;
+    const name = document.createElement('span'); name.className = 'lname'; name.textContent = l.name;
+    const sum = document.createElement('span'); sum.className = 'lsum'; sum.textContent = yen(l.price * l.qty);
+    const unit = document.createElement('span'); unit.className = 'lunit';
+    unit.textContent = l.kind === 'item' ? `${yen(l.price)} × ${l.qty}` : '';
+    const qty = document.createElement('span'); qty.className = 'lqty';
+    if (l.kind === 'item') qty.innerHTML = '<button type="button" class="qbtn" data-act="minus" aria-label="1つ減らす">−</button><button type="button" class="qbtn" data-act="plus" aria-label="1つ増やす">＋</button>';
+    else qty.innerHTML = '<button type="button" class="qbtn" data-act="remove" aria-label="取り消す">×</button>';
+    li.append(name, sum, unit, qty);
+    ul.appendChild(li);
+  }
+  if (focusKey) { const el = ul.querySelector(`[data-key="${focusKey}"]`); if (el) el.scrollIntoView({ block: 'nearest' }); }
+  const pay = sale.paid;
+  $('#payBox').hidden = pay == null;
+  if (pay != null) {
+    const ch = pay - total;
+    $('#paid').textContent = yen(pay);
+    $('#changeRow').classList.toggle('short', ch < 0);
+    $('#changeLabel').textContent = ch < 0 ? 'あと' : 'お釣り';
+    $('#change').textContent = yen(Math.abs(ch));
+  }
+  $('#nextBtn').disabled = !sale.lines.length && pay == null;
+  updateBadges();
+}
+$('#lines').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const key = btn.closest('li').dataset.key;
+  const i = sale.lines.findIndex(l => l.key === key);
+  if (i < 0) return;
+  const l = sale.lines[i], act = btn.dataset.act;
+  if (act === 'plus') l.qty += 1;
+  else if (act === 'minus') { l.qty -= 1; if (l.qty <= 0) sale.lines.splice(i, 1); }
+  else if (act === 'remove') sale.lines.splice(i, 1);
+  saleChanged(act === 'plus' ? key : null);
+});
+document.querySelectorAll('[data-pay]').forEach(b => b.addEventListener('click', () => {
+  const total = totalOf(sale);
+  if (b.dataset.pay === 'exact') {
+    if (total <= 0) { toast('先にメニューを押す'); return; }
+    sale.paid = total;
+  } else sale.paid = Number(b.dataset.pay);
+  saleChanged();
+}));
+
+// 「次のお客さん」は2回押しで消す。消した直後は戻せる
+let armTimer = null;
+function disarm() { clearTimeout(armTimer); armTimer = null; const b = $('#nextBtn'); b.classList.remove('armed'); b.textContent = '次のお客さん'; }
+$('#nextBtn').addEventListener('click', () => {
+  if (!armTimer) {
+    const b = $('#nextBtn');
+    b.classList.add('armed'); b.textContent = 'もう一度押すと消える';
+    armTimer = setTimeout(disarm, 3000);
+    return;
+  }
+  disarm();
+  // 集計を足す時は、ここで sale（この会計の中身）を記録する
+  const prev = sale;
+  sale = { lines: [], paid: null };
+  saveSale(); calcClear();
+  lastSale = prev;
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { lastSale = null; renderSale(); }, 15000);
+  renderSale();
+});
+function undoClear() {
+  if (!lastSale) return;
+  sale = lastSale;
+  saleChanged();
+}
+
+// ---- 電卓（かけ算・わり算を先に計算する） ----
+let calc = { tokens: [], done: false };      // tokens は「数字」と「演算子」が交互に並ぶ
+const isOp = s => s === '+' || s === '-' || s === '*' || s === '/';
+const OP_LABEL = { '+': '＋', '-': '−', '*': '×', '/': '÷' };
+function evaluate(tokens) {
+  const t = tokens.slice();
+  if (!t.length) return 0;
+  if (isOp(t[t.length - 1])) t.pop();
+  const nums = [parseFloat(t[0])], ops = [];
+  for (let i = 1; i < t.length; i += 2) {
+    const op = t[i], n = parseFloat(t[i + 1]);
+    if (op === '*') nums[nums.length - 1] *= n;
+    else if (op === '/') { if (n === 0) return null; nums[nums.length - 1] /= n; }
+    else { ops.push(op); nums.push(n); }
+  }
+  let v = nums[0];
+  ops.forEach((op, i) => { v = op === '+' ? v + nums[i + 1] : v - nums[i + 1]; });
+  v = Math.round(v * 100) / 100;
+  return Math.abs(v) >= 1e12 ? null : v;
+}
+function calcPress(k) {
+  const t = calc.tokens, last = t[t.length - 1];
+  if (k === 'C') { calcClear(); return; }
+  if (k === 'BS') {
+    if (calc.done) { calcClear(); return; }
+    if (last === undefined) return;
+    if (isOp(last)) t.pop();
+    else { const s = last.slice(0, -1); if (s === '' || s === '-') t.pop(); else t[t.length - 1] = s; }
+  } else if (/^\d+$/.test(k)) {
+    if (calc.done) { t.length = 0; calc.done = false; }
+    const end = t[t.length - 1];
+    const cur = end === undefined || isOp(end) ? '' : end;
+    const next = (cur + k).replace(/^0+(?=\d)/, '');
+    if (next.length > 9) return;
+    if (cur === '') t.push(next); else t[t.length - 1] = next;
+  } else if (isOp(k)) {
+    calc.done = false;
+    if (!t.length) t.push('0');
+    if (isOp(t[t.length - 1])) t[t.length - 1] = k; else t.push(k);
+  } else if (k === '=') {
+    if (!t.length) return;
+    const v = evaluate(t);
+    if (v === null) { renderCalc(true); return; }
+    calc.tokens = [String(v)]; calc.done = true;
+  }
+  renderCalc();
+}
+function calcClear() { calc = { tokens: [], done: false }; renderCalc(); }
+function renderCalc(forceErr) {
+  const t = calc.tokens;
+  const hasOp = t.some(isOp);
+  $('#expr').textContent = hasOp ? t.map(x => isOp(x) ? ` ${OP_LABEL[x]} ` : fmt(parseFloat(x))).join('') : ' ';
+  const v = evaluate(t), cv = $('#cval');
+  const err = forceErr || v === null;
+  cv.classList.toggle('err', err);
+  cv.textContent = err ? (t.includes('/') ? '0では割れない' : '桁が多すぎる') : fmt(v);
+}
+$('#keys').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (b) calcPress(b.dataset.k); });
+$('#addManual').addEventListener('click', () => {
+  const v = evaluate(calc.tokens);
+  if (v === null || Math.round(v) === 0) { toast('先に電卓で金額を打つ（値引きは −300 のように）'); return; }
+  const n = Math.round(v);
+  const line = { kind: 'manual', key: uid(), id: null, name: n < 0 ? '値引き' : '手入力', price: n, qty: 1 };
+  sale.lines.push(line);
+  calcClear(); saleChanged(line.key);
+});
+$('#setPaid').addEventListener('click', () => {
+  const v = evaluate(calc.tokens);
+  if (v === null || Math.round(v) <= 0) { toast('受け取った金額を電卓で打ってから押す'); return; }
+  sale.paid = Math.round(v);
+  calcClear(); saleChanged();
+});
+
+// ---- 編集画面（長押しで開く） ----
+let holdTimer = null;
+const editBtn = $('#editBtn');
+editBtn.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  editBtn.classList.add('holding');
+  holdTimer = setTimeout(() => { holdTimer = null; editBtn.classList.remove('holding'); openEditor(); }, 800);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => editBtn.addEventListener(ev, () => {
+  if (!holdTimer) return;
+  clearTimeout(holdTimer); holdTimer = null; editBtn.classList.remove('holding');
+  if (ev === 'pointerup') toast('「メニュー編集」は長押しすると開く');
+}));
+editBtn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openEditor(); });
+
+function openEditor() { $('#backupMsg').textContent = ''; renderEditor(); $('#editor').hidden = false; }
+function closeEditor() {
+  menu.forEach(m => { m.name = m.name.trim(); });
+  saveMenu(); $('#editor').hidden = true; renderMenu(); renderSale();
+}
+$('#edDone').addEventListener('click', closeEditor);
+function renderEditor(focusId) {
+  const ol = $('#edList');
+  ol.textContent = '';
+  menu.forEach((m, i) => {
+    const li = document.createElement('li');
+    li.className = 'edRow'; li.dataset.id = m.id;
+    li.innerHTML = `
+      <button type="button" class="swatch" aria-label="ボタンの色"></button>
+      <input class="edName" type="text" maxlength="30" placeholder="品名" enterkeyhint="next">
+      <span class="priceWrap"><input class="edPrice" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="0" enterkeyhint="done"><span>円</span></span>
+      <button type="button" class="mv" data-mv="-1" aria-label="上へ">↑</button>
+      <button type="button" class="mv" data-mv="1" aria-label="下へ">↓</button>
+      <button type="button" class="del">削除</button>
+      <div class="palette" hidden></div>`;
+    li.querySelector('.swatch').style.setProperty('--c', `var(--c${m.color})`);
+    const nameIn = li.querySelector('.edName'), priceIn = li.querySelector('.edPrice');
+    nameIn.value = m.name; priceIn.value = String(m.price);
+    nameIn.addEventListener('input', () => { m.name = nameIn.value.slice(0, 30); saveMenu(); });
+    priceIn.addEventListener('input', () => {
+      const d = toHalf(priceIn.value).replace(/[^0-9]/g, '').slice(0, 7);
+      m.price = d ? parseInt(d, 10) : 0; saveMenu();
+    });
+    priceIn.addEventListener('blur', () => { priceIn.value = String(m.price); });
+    priceIn.addEventListener('focus', () => { if (priceIn.value === '0') priceIn.value = ''; });
+    const pal = li.querySelector('.palette');
+    for (let c = 0; c < COLOR_COUNT; c++) {
+      const sw = document.createElement('button');
+      sw.type = 'button'; sw.style.setProperty('--c', `var(--c${c})`);
+      sw.setAttribute('aria-label', `色${c + 1}`);
+      if (c === m.color) sw.classList.add('on');
+      sw.addEventListener('click', () => { m.color = c; saveMenu(); renderEditor(); });
+      pal.appendChild(sw);
+    }
+    li.querySelector('.swatch').addEventListener('click', () => { pal.hidden = !pal.hidden; });
+    li.querySelectorAll('.mv').forEach(b => b.addEventListener('click', () => {
+      const j = i + Number(b.dataset.mv);
+      if (j < 0 || j >= menu.length) return;
+      [menu[i], menu[j]] = [menu[j], menu[i]];
+      saveMenu(); renderEditor();
+    }));
+    const del = li.querySelector('.del');
+    let delTimer = null;
+    del.addEventListener('click', () => {
+      if (!delTimer) {
+        del.classList.add('armed'); del.textContent = '消す？';
+        delTimer = setTimeout(() => { delTimer = null; del.classList.remove('armed'); del.textContent = '削除'; }, 3000);
+        return;
+      }
+      clearTimeout(delTimer);
+      menu.splice(i, 1); saveMenu(); renderEditor();
+    });
+    ol.appendChild(li);
+  });
+  // 足した品の名前の欄へ。押した流れのまま focus しないと iPad でキーボードが出ない
+  const added = focusId && ol.querySelector(`[data-id="${focusId}"]`);
+  if (added) { added.scrollIntoView({ block: 'center' }); added.querySelector('.edName').focus(); }
+  $('#ver').textContent = `版 ${APP_VERSION}`;
+}
+$('#edAdd').addEventListener('click', () => {
+  const m = { id: uid(), name: '', price: 0, color: menu.length % COLOR_COUNT };
+  menu.push(m); saveMenu(); renderEditor(m.id);
+});
+document.querySelectorAll('[data-theme-pick]').forEach(b => b.addEventListener('click', () => {
+  save(KEY_THEME, b.dataset.themePick); applyTheme(b.dataset.themePick);
+}));
+
+// 控え：共有が使える端末（iPad・Android）は共有の画面、ほかはダウンロード
+$('#exportBtn').addEventListener('click', async () => {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+  const data = { app: 'marche-regi', v: 1, saved: d.toISOString(), menu: menu.filter(m => m.name.trim()).map(({ name, price, color }) => ({ name, price, color })) };
+  const text = JSON.stringify(data, null, 2);
+  const fname = `マルシェレジ_メニュー控え_${stamp}.json`;
+  const file = new File([text], fname, { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: fname }); $('#backupMsg').textContent = '控えを渡した。「ファイルに保存」やLINEの自分あてなど、なくさない所に置く。'; }
+    catch (e) { if (e.name !== 'AbortError') $('#backupMsg').textContent = '控えを渡せなかった。もう一度押す。'; }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = fname;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  $('#backupMsg').textContent = `控えを保存した（${fname}）。`;
+});
+$('#importInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  const msg = $('#backupMsg');
+  let list = null;
+  try { const data = JSON.parse(await f.text()); if (data && data.app === 'marche-regi') list = cleanMenu(data.menu); } catch (err) { list = null; }
+  if (!list || !list.length) { msg.textContent = 'このファイルは控えとして読めなかった。「控えを保存」で作ったファイルを選ぶ。'; return; }
+  msg.textContent = `控えのメニュー（${list.length}品）に置き換える？ 今のメニューは消える。`;
+  const ok = document.createElement('button'); ok.type = 'button'; ok.textContent = '置き換える';
+  const ng = document.createElement('button'); ng.type = 'button'; ng.textContent = 'やめる';
+  ok.addEventListener('click', () => {
+    menu = list.map(m => ({ ...m, id: uid() }));
+    saveMenu(); renderEditor(); msg.textContent = `控えから${list.length}品を戻した。`;
+  });
+  ng.addEventListener('click', () => { msg.textContent = ''; });
+  msg.append(document.createElement('br'), ok, ng);
+});
+
+// ---- ホーム画面に追加の案内 ----
+const ua = navigator.userAgent;
+const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(ua);
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let installEvent = null;
+function showInstallTip() {
+  if (standalone || load(KEY_TIP, false) || !(isIOS || isAndroid)) return;
+  $('#installText').textContent = isIOS
+    ? 'ホーム画面に追加して使う：Safari の共有ボタン（四角に上向きの矢印）→「ホーム画面に追加」。メニューは追加したアイコンから開いて入れる（Safariのまま入れた分は引き継がれないことがある）。'
+    : 'ホーム画面に追加して使う：Chrome の右上の「︙」→「ホーム画面に追加」または「アプリをインストール」。';
+  $('#installTip').hidden = false;
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; $('#installBtn').hidden = false; });
+$('#installBtn').addEventListener('click', async () => {
+  if (!installEvent) return;
+  installEvent.prompt();
+  await installEvent.userChoice.catch(() => null);
+  installEvent = null; $('#installBtn').hidden = true;
+});
+$('#tipClose').addEventListener('click', () => { save(KEY_TIP, true); $('#installTip').hidden = true; });
+
+// ---- その他 ----
+let toastTimer = null;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+document.addEventListener('contextmenu', e => { if (!e.target.closest('input')) e.preventDefault(); });
+document.addEventListener('touchstart', () => {}, { passive: true });   // iPad で押した時の色を出す
+
+if (!canStore) $('#storeWarn').hidden = false;
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+renderMenu(); renderSale(); renderCalc(); showInstallTip();
+</script>
+</body>
+</html>
